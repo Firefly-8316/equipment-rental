@@ -1,0 +1,113 @@
+Equipment Rental Management System – Project Document
+1. PROJECT OVERVIEW
+
+Project Title: Equipment Rental Management System
+Tech Stack: MERN (MongoDB, Express, React, Node.js)
+
+2. PROBLEM STATEMENT
+
+The traditional equipment rental process is mostly manual and inefficient. Customers must visit rental offices or make phone calls to check equipment availability. Rental records are maintained using registers or spreadsheets, which leads to errors, data loss, and double bookings. Billing is done manually, increasing the chances of miscalculations. There is no real-time system to track equipment status or rental history.
+
+3. PROPOSED SOLUTION
+
+A web-based application that allows users to browse available equipment, check rental prices, and place rental requests online. The admin can manage equipment inventory, approve rentals, track returns, and handle payments through a centralized dashboard. The system provides real-time availability updates and automated billing to ensure accuracy and efficiency.
+
+4. USER ROLES & PERMISSIONS
+A. User (Customer):
+
+Can Register and Login
+
+Can View available equipment
+
+Can Check rental price and availability
+
+Can Book equipment for a selected duration
+
+Can Make payments
+
+Can View rental history and booking status
+
+B. Admin (Rental Manager):
+
+Can Login to secure Admin Dashboard
+
+Can Add/Edit/Delete equipment details
+
+Can Set rental price and availability
+
+Can View and manage rental requests
+
+Can Update rental status (Booked → Rented → Returned)
+
+5. DATABASE STRUCTURE (Schemas)
+A. User Schema:
+
+Name (String)
+
+Email (String, Unique)
+
+Password (Hashed)
+
+Role (String: 'user' or 'admin')
+
+B. Equipment Schema:
+
+Name (String, e.g., "Concrete Mixer")
+
+Description (String)
+
+RentalPrice (Number)
+
+Category (String, e.g., "Construction", "Event")
+
+ImageURL (String)
+
+IsAvailable (Boolean, Default: true)
+
+C. Booking Schema:
+
+UserID (Reference to User)
+
+EquipmentID (Reference to Equipment)
+
+RentalDuration (Number of days)
+
+TotalAmount (Number)
+
+Status (String: 'Booked', 'Rented', 'Returned')
+
+CreatedAt (Timestamp)
+
+6. FEATURE WORKFLOW (User Journey)
+
+Login: User logs in and accesses the equipment listing page.
+
+Browse: User views available equipment fetched from MongoDB.
+
+Book: User selects equipment, rental duration, and confirms booking.
+
+Database: A new booking record is created with status “Booked”.
+
+Admin View: Admin sees the booking request on the dashboard.
+
+Update: Admin updates rental status as equipment is rented and returned.
+
+Completion: User can view completed rentals in booking history.
+
+7. API ENDPOINTS (URL Rules)
+
+POST /api/auth/register → Register new user
+
+POST /api/auth/login → Login user
+
+GET /api/equipment → Get list of equipment
+
+POST /api/equipment → Add new equipment (Admin only)
+
+PUT /api/equipment/:id → Update equipment (Admin only)
+
+DELETE /api/equipment/:id → Delete equipment (Admin only)
+
+POST /api/bookings → Create new booking
+
+GET /api/bookings/user → View user booking history
