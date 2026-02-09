@@ -1,7 +1,13 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export function ProtectedRoute({ children, adminOnly }) {
+function getDashboardPath(role) {
+  if (role === 'admin') return '/admin';
+  if (role === 'equipment_manager') return '/equipment-manager';
+  return '/equipment';
+}
+
+export function ProtectedRoute({ children, adminOnly, equipmentManagerOnly, userOnly }) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
@@ -12,7 +18,15 @@ export function ProtectedRoute({ children, adminOnly }) {
   }
 
   if (adminOnly && user.role !== 'admin') {
-    return <Navigate to="/" replace />;
+    return <Navigate to={getDashboardPath(user.role)} replace />;
+  }
+
+  if (equipmentManagerOnly && user.role !== 'equipment_manager') {
+    return <Navigate to={getDashboardPath(user.role)} replace />;
+  }
+
+  if (userOnly && ['admin', 'equipment_manager'].includes(user.role)) {
+    return <Navigate to={getDashboardPath(user.role)} replace />;
   }
 
   return children;

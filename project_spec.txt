@@ -1,113 +1,66 @@
 Equipment Rental Management System – Project Document
 1. PROJECT OVERVIEW
-
 Project Title: Equipment Rental Management System
 Tech Stack: MERN (MongoDB, Express, React, Node.js)
-
 2. PROBLEM STATEMENT
-
-The traditional equipment rental process is mostly manual and inefficient. Customers must visit rental offices or make phone calls to check equipment availability. Rental records are maintained using registers or spreadsheets, which leads to errors, data loss, and double bookings. Billing is done manually, increasing the chances of miscalculations. There is no real-time system to track equipment status or rental history.
-
+The traditional equipment rental process is largely manual and inefficient. Customers must physically visit rental offices or make phone calls to check equipment availability. Rental records are maintained using paper registers or spreadsheets, leading to errors, data loss, and double bookings. Billing is handled manually, increasing the risk of miscalculations. Additionally, there is no real-time system to track equipment status or rental history.
 3. PROPOSED SOLUTION
-
-A web-based application that allows users to browse available equipment, check rental prices, and place rental requests online. The admin can manage equipment inventory, approve rentals, track returns, and handle payments through a centralized dashboard. The system provides real-time availability updates and automated billing to ensure accuracy and efficiency.
-
+The proposed system is a web-based application that allows users to browse available equipment, check rental prices, and place rental requests online. Administrators can manage equipment inventory, approve rental requests, track equipment returns, and handle payments through a centralized dashboard. The system provides real-time availability updates and automated billing to improve accuracy, efficiency, and transparency.
 4. USER ROLES & PERMISSIONS
 A. User (Customer):
-
-Can Register and Login
-
-Can View available equipment
-
-Can Check rental price and availability
-
-Can Book equipment for a selected duration
-
-Can Make payments
-
-Can View rental history and booking status
-
+Can register and login
+Can view available equipment
+Can check rental price and availability
+Can book equipment for a selected duration
+Can make payments
+Can view rental history and booking status
 B. Admin (Rental Manager):
-
-Can Login to secure Admin Dashboard
-
-Can Add/Edit/Delete equipment details
-
-Can Set rental price and availability
-
-Can View and manage rental requests
-
-Can Update rental status (Booked → Rented → Returned)
-
+Can login to a secure admin dashboard
+Can add, edit, or delete equipment details
+Can set rental price and availability
+Can view and manage rental requests
+Can update rental status (Booked → Rented → Returned)
+C. Equipment Manager (Operational Role):
+Can login to the equipment manager dashboard
+Can assign equipment for approved bookings
+Can update equipment availability status
+Can record equipment return details
+Can report damaged or unavailable equipment
+Acts as the operational handler between Admin and Users
 5. DATABASE STRUCTURE (Schemas)
 A. User Schema:
-
 Name (String)
-
 Email (String, Unique)
-
 Password (Hashed)
-
-Role (String: 'user' or 'admin')
-
+Role (String: 'user', 'admin', 'equipment_manager')
 B. Equipment Schema:
-
 Name (String, e.g., "Concrete Mixer")
-
 Description (String)
-
 RentalPrice (Number)
-
 Category (String, e.g., "Construction", "Event")
-
 ImageURL (String)
-
 IsAvailable (Boolean, Default: true)
-
 C. Booking Schema:
-
 UserID (Reference to User)
-
 EquipmentID (Reference to Equipment)
-
 RentalDuration (Number of days)
-
 TotalAmount (Number)
-
 Status (String: 'Booked', 'Rented', 'Returned')
-
 CreatedAt (Timestamp)
-
 6. FEATURE WORKFLOW (User Journey)
-
 Login: User logs in and accesses the equipment listing page.
-
 Browse: User views available equipment fetched from MongoDB.
-
 Book: User selects equipment, rental duration, and confirms booking.
-
 Database: A new booking record is created with status “Booked”.
-
 Admin View: Admin sees the booking request on the dashboard.
-
-Update: Admin updates rental status as equipment is rented and returned.
-
-Completion: User can view completed rentals in booking history.
-
+Update: Admin or Equipment Manager updates rental status during usage and return.
+Completion: User views completed rentals in booking history.
 7. API ENDPOINTS (URL Rules)
-
 POST /api/auth/register → Register new user
-
 POST /api/auth/login → Login user
-
 GET /api/equipment → Get list of equipment
-
 POST /api/equipment → Add new equipment (Admin only)
-
 PUT /api/equipment/:id → Update equipment (Admin only)
-
 DELETE /api/equipment/:id → Delete equipment (Admin only)
-
 POST /api/bookings → Create new booking
-
 GET /api/bookings/user → View user booking history

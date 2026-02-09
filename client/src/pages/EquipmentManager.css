@@ -1,0 +1,28 @@
+.equipment-manager-page h1 {
+  margin-bottom: 1.5rem;
+}
+
+.em-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+.em-nav a {
+  padding: 0.5rem 1rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+.em-nav a:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+
+.em-nav a.active {
+  color: var(--accent);
+  font-weight: 600;
+}

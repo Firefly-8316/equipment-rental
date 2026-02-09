@@ -1,26 +1,28 @@
+import { Navigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Home.css';
 
 export function Home() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  if (loading) return <div className="loading">Loading...</div>;
+
+  if (user) {
+    if (user.role === 'admin') return <Navigate to="/admin" replace />;
+    if (user.role === 'equipment_manager') return <Navigate to="/equipment-manager" replace />;
+    return <Navigate to="/equipment" replace />;
+  }
 
   return (
     <div className="home">
       <div className="hero">
         <h1>Equipment Rental Management System</h1>
         <p>Browse, book, and manage equipment rentals with ease.</p>
-        {user ? (
-          <div className="hero-actions">
-            <Link to="/equipment" className="btn-primary">Browse Equipment</Link>
-            <Link to="/bookings" className="btn-secondary">My Bookings</Link>
-          </div>
-        ) : (
-          <div className="hero-actions">
-            <Link to="/register" className="btn-primary">Get Started</Link>
-            <Link to="/login" className="btn-secondary">Login</Link>
-          </div>
-        )}
+        <div className="hero-actions">
+          <Link to="/register" className="btn-primary">Get Started</Link>
+          <Link to="/login" className="btn-secondary">Login</Link>
+        </div>
       </div>
       <div className="features">
         <div className="feature">

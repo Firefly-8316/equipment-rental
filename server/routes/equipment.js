@@ -1,6 +1,6 @@
 const express = require('express');
 const Equipment = require('../models/Equipment');
-const { protect, admin } = require('../middleware/auth');
+const { protect, admin, equipmentManager } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', protect, admin, async (req, res) => {
+router.post('/', protect, equipmentManager, async (req, res) => {
   try {
     const { name, description, rentalPrice, category, imageURL, isAvailable } = req.body;
     if (!name || rentalPrice === undefined) {
@@ -29,6 +29,7 @@ router.post('/', protect, admin, async (req, res) => {
       category: category || 'General',
       imageURL: imageURL || '',
       isAvailable: isAvailable !== false,
+      penaltyPerDay: Number(req.body.penaltyPerDay) || 0,
     });
     res.status(201).json(equipment);
   } catch (error) {
@@ -36,23 +37,21 @@ router.post('/', protect, admin, async (req, res) => {
   }
 });
 
-router.put('/:id', protect, admin, async (req, res) => {
+router.put('/:id', protect, equipmentManager, async (req, res) => {
   try {
     const equipment = await Equipment.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
     );
-    if (!equipment) {
-      return res.status(404).json({ message: 'Equipment not found' });
-    }
+    if (!equipment) return res.status(404).json({ message: 'Equipment not found' });
     res.json(equipment);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-router.delete('/:id', protect, admin, async (req, res) => {
+router.delete('/:id', protect, equipmentManager, async (req, res) => {
   try {
     const equipment = await Equipment.findByIdAndDelete(req.params.id);
     if (!equipment) {

@@ -28,4 +28,17 @@ const admin = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin };
+const equipmentManager = (req, res, next) => {
+  if (!req.user) {
+    return res.status(403).json({ message: 'Equipment manager access required' });
+  }
+  const role = String(req.user.role || '').toLowerCase().replace(/\s+/g, '_');
+  const allowed = role === 'admin' || role === 'equipment_manager';
+  if (allowed) {
+    next();
+  } else {
+    res.status(403).json({ message: 'Equipment manager access required' });
+  }
+};
+
+module.exports = { protect, admin, equipmentManager };

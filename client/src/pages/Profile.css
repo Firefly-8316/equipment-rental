@@ -1,0 +1,63 @@
+.profile-page h1 {
+  margin-bottom: 1.5rem;
+}
+
+.profile-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 480px;
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1.25rem;
+}
+
+.profile-field:last-of-type {
+  margin-bottom: 0;
+}
+
+.profile-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.profile-value {
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.profile-badge {
+  display: inline-block;
+  width: fit-content;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.profile-badge.admin {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.profile-badge.user {
+  background: rgba(148, 163, 184, 0.2);
+  color: var(--text-muted);
+}
+
+.profile-badge.equipment_manager {
+  background: rgba(168, 85, 247, 0.2);
+  color: #a855f7;
+}
+
+.profile-note {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}

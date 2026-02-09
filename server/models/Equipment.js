@@ -25,6 +25,19 @@ const equipmentSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  condition: {
+    type: String,
+    enum: ['Good', 'Damaged', 'Unavailable'],
+    default: 'Good',
+  },
+  conditionNotes: {
+    type: String,
+    default: '',
+  },
+  penaltyPerDay: {
+    type: Number,
+    default: 0,
+  },
 }, {
   timestamps: true,
 });

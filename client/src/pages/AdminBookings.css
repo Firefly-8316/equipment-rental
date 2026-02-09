@@ -1,0 +1,94 @@
+.admin-bookings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.admin-bookings h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.admin-bookings .filter-select {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.payment-select {
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: 1px solid var(--border);
+}
+
+.payment-select.pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.payment-select.paid {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.customer-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.customer-cell span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.admin-bookings .booking-status {
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.admin-bookings .status-booked {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.admin-bookings .status-rented {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.admin-bookings .status-returned {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.status-select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.status-select:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.updating-text {
+  margin-left: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}

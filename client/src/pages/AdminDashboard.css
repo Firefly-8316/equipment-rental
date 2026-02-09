@@ -1,0 +1,88 @@
+.admin-dashboard h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.stat-card.highlight {
+  border-color: var(--accent);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.stat-card a {
+  font-size: 0.9rem;
+  color: var(--accent);
+  text-decoration: none;
+  margin-top: 0.5rem;
+}
+
+.stat-card a:hover {
+  text-decoration: underline;
+}
+
+.booking-stats h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+.status-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.status-badges .badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.status-badges .badge.booked {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.status-badges .badge.rented {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.status-badges .badge.returned {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.pending-payments {
+  margin-top: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}

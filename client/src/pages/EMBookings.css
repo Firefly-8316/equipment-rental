@@ -1,0 +1,70 @@
+.em-bookings-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.em-bookings h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.em-bookings-hint {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.em-bookings .filter-select {
+  width: fit-content;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.em-bookings .customer-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.em-bookings .customer-cell span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.em-bookings .booking-status {
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.em-bookings .status-booked {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.em-bookings .status-rented {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.em-bookings .status-returned {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.em-bookings .status-select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+}

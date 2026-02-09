@@ -1,0 +1,81 @@
+.em-overview h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+}
+
+.em-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.em-stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.em-stat-card.warning {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.em-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.em-stat-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.em-stat-card a {
+  font-size: 0.9rem;
+  color: var(--accent);
+  text-decoration: none;
+  margin-top: 0.5rem;
+}
+
+.em-stat-card a:hover {
+  text-decoration: underline;
+}
+
+.em-booking-stats h3 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+.em-status-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.em-status-badges .badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.em-status-badges .badge.booked {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.em-status-badges .badge.rented {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.em-status-badges .badge.returned {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}

@@ -1,0 +1,41 @@
+.admin-users h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+}
+
+.role-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.role-badge.admin {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.role-badge.user {
+  background: rgba(148, 163, 184, 0.2);
+  color: var(--text-muted);
+}
+
+.role-badge.equipment_manager {
+  background: rgba(168, 85, 247, 0.2);
+  color: #a855f7;
+}
+
+.role-select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.current-user {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}

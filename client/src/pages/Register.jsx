@@ -12,13 +12,19 @@ export function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  const getDashboardPath = (role) => {
+    if (role === 'admin') return '/admin';
+    if (role === 'equipment_manager') return '/equipment-manager';
+    return '/equipment';
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      await register(name, email, password);
-      navigate('/');
+      const userData = await register(name, email, password);
+      navigate(getDashboardPath(userData.role), { replace: true });
     } catch (err) {
       setError(err.message || 'Registration failed');
     } finally {

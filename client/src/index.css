@@ -23,10 +23,23 @@ body {
   min-height: 100vh;
 }
 
-.loading {
+.loading,
+.loading-msg {
   padding: 3rem;
   text-align: center;
   color: var(--text-muted);
+}
+
+.error-msg {
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border-radius: 8px;
+}
+
+.empty-msg {
+  color: var(--text-muted);
+  padding: 2rem;
 }
 
 .page {

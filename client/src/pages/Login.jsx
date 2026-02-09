@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Auth.css';
 
@@ -10,16 +10,20 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const from = location.state?.from?.pathname || '/';
+
+  const getDashboardPath = (role) => {
+    if (role === 'admin') return '/admin';
+    if (role === 'equipment_manager') return '/equipment-manager';
+    return '/equipment';
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
-      navigate(from, { replace: true });
+      const userData = await login(email, password);
+      navigate(getDashboardPath(userData.role), { replace: true });
     } catch (err) {
       setError(err.message || 'Login failed');
     } finally {
