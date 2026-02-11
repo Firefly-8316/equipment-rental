@@ -113,6 +113,7 @@ export function EMBookings() {
                 <th>Equipment</th>
                 <th>Duration</th>
                 <th>Total</th>
+                <th>Fine</th>
                 <th>Booked On</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -133,6 +134,7 @@ export function EMBookings() {
                     <div className="muted">{formatDateTime(b.endDate)}</div>
                   </td>
                   <td>₹{b.totalAmount}</td>
+                  <td>{computePenalty(b) > 0 ? `₹${computePenalty(b)}` : '—'}</td>
                   <td>{formatDate(b.createdAt)}</td>
                   <td>
                     <span className={`booking-status status-${b.status.toLowerCase()}`}>{b.status}</span>
@@ -152,7 +154,27 @@ export function EMBookings() {
                     {computePenalty(b) > 0 && (
                       <div style={{ marginTop: 8 }}>
                         <div className="booking-penalty">Penalty: ₹{computePenalty(b)}</div>
-                        <button type="button" className="btn-pay" onClick={() => { paymentAmountRef.current = computePenalty(b); setPaymentBooking(b); }}>
+                        <button
+                          type="button"
+                          className="btn-pay"
+                          onClick={async () => {
+                            if ((b.outstandingAmount || 0) > 0) {
+                              setUpdating(b._id);
+                              try {
+                                await api.post(`/bookings/${b._id}/penalty/pay`);
+                                fetchBookings();
+                              } catch (err) {
+                                setError(err.message || 'Collect failed');
+                              } finally {
+                                setUpdating(null);
+                              }
+                            } else {
+                              // no outstanding recorded — open manual collect modal
+                              paymentAmountRef.current = computePenalty(b);
+                              setPaymentBooking(b);
+                            }
+                          }}
+                        >
                           Collect Penalty
                         </button>
                       </div>

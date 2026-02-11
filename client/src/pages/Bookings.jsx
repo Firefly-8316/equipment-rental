@@ -60,7 +60,13 @@ export function Bookings() {
 
   const getDurationText = (b) => {
     if (b.rentalType === 'hours') {
-      return `${b.rentalDuration || 0} hour${(b.rentalDuration || 0) !== 1 ? 's' : ''}`;
+      const totalHours = Number(b.rentalDuration) || 0;
+      const hrs = Math.floor(totalHours);
+      const mins = Math.round((totalHours - hrs) * 60);
+      const parts = [];
+      if (hrs > 0) parts.push(`${hrs} hour${hrs !== 1 ? 's' : ''}`);
+      if (mins > 0) parts.push(`${mins} min${mins !== 1 ? 's' : ''}`);
+      return parts.length ? parts.join(' ') : '0 min';
     }
     if (b.startDate && b.endDate) {
       const start = new Date(b.startDate);
@@ -159,7 +165,26 @@ export function Bookings() {
                       );
                     }
                     if ((b.paymentStatus || 'Pending') === 'Paid' && penalty > 0) {
-                      // booking paid, but penalty outstanding
+                      // booking paid, but penalty outstanding — prefer calling API only if outstandingAmount recorded
+                      if ((b.outstandingAmount || 0) > 0) {
+                        return (
+                          <button
+                            type="button"
+                            className="btn-pay"
+                            onClick={async () => {
+                              try {
+                                await api.post(`/bookings/${b._id}/penalty/pay`);
+                                fetchBookings();
+                              } catch (err) {
+                                setError(err.message || 'Payment failed');
+                              }
+                            }}
+                          >
+                            Pay Penalty
+                          </button>
+                        );
+                      }
+                      // no outstanding recorded — open payment modal so user can pay penalty manually (frontend preview)
                       paymentAmountRef.current = penalty;
                       return (
                         <button

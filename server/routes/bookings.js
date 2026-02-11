@@ -78,6 +78,36 @@ router.post('/', protect, async (req, res) => {
   }
 });
 
+// Collect penalty / mark penalty as paid
+router.post('/:id/penalty/pay', protect, async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+    // Authorization: allow equipment managers/admins OR the booking owner
+    const role = String(req.user.role || '').toLowerCase().replace(/\s+/g, '_');
+    const isManager = role === 'admin' || role === 'equipment_manager';
+    const isOwner = String(booking.user) === String(req.user._id);
+    if (!isManager && !isOwner) {
+      return res.status(403).json({ message: 'Not authorized to collect penalty for this booking' });
+    }
+
+    const outstanding = booking.outstandingAmount || 0;
+    // If booking was unpaid and penalty was added to totalAmount, user may pay totalAmount instead.
+    // For this endpoint we only accept collecting outstandingAmount.
+    if (outstanding <= 0) {
+      return res.status(400).json({ message: 'No outstanding penalty to collect' });
+    }
+    booking.outstandingAmount = 0;
+    booking.penaltyPaidAt = new Date();
+    await booking.save();
+    const populated = await Booking.findById(booking._id).populate('equipment').populate('user', 'name email');
+    res.json(populated);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.get('/user', protect, async (req, res) => {
   try {
     const { status } = req.query;
@@ -137,6 +167,41 @@ router.patch('/:id', protect, equipmentManager, async (req, res) => {
       } else if (status === 'Returned') {
         update.status = 'Returned';
         update.returnedAt = new Date();
+        // compute penalty if not already computed
+        const penaltyPerDay = existing.penaltyPerDay || 0;
+        if (penaltyPerDay) {
+          // only compute if not already set
+          if (!existing.penaltyAmount || existing.penaltyAmount === 0) {
+            // determine expected end
+            let expectedEnd = existing.endDate ? new Date(existing.endDate) : null;
+            if (!expectedEnd && existing.startDate) {
+              const start = new Date(existing.startDate);
+              if (existing.rentalType === 'hours') {
+                expectedEnd = new Date(start.getTime() + (existing.rentalDuration || 0) * 60 * 60 * 1000);
+              } else {
+                expectedEnd = new Date(start);
+                expectedEnd.setDate(expectedEnd.getDate() + (existing.rentalDuration || 0));
+              }
+            }
+            const actualReturn = update.returnedAt || new Date();
+            let penaltyAmount = 0;
+            if (expectedEnd && actualReturn > expectedEnd) {
+              const lateMs = actualReturn - expectedEnd;
+              const lateDays = Math.ceil(lateMs / (24 * 60 * 60 * 1000));
+              penaltyAmount = lateDays * penaltyPerDay;
+            }
+            if (penaltyAmount > 0) {
+              update.penaltyAmount = penaltyAmount;
+              // if booking already paid, record outstanding amount for penalty
+              if (existing.paymentStatus === 'Paid') {
+                update.outstandingAmount = (existing.outstandingAmount || 0) + penaltyAmount;
+              } else {
+                // booking not paid yet: add penalty to total so payment will cover it
+                update.totalAmount = (existing.totalAmount || 0) + penaltyAmount;
+              }
+            }
+          }
+        }
       } else {
         update.status = status;
       }

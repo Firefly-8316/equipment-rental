@@ -7,17 +7,24 @@ export function BookModal({ equipment, onClose, onSuccess }) {
   const [rentalType, setRentalType] = useState('days');
   const [startDate, setStartDate] = useState(today);
   const [startTime, setStartTime] = useState('09:00');
+  // days-mode duration
   const [rentalDuration, setRentalDuration] = useState(1);
   const [endDate, setEndDate] = useState('');
   const [endTime, setEndTime] = useState('18:00');
+  // hours-mode duration: hours + minutes
+  const [rentalHours, setRentalHours] = useState(1);
+  const [rentalMinutes, setRentalMinutes] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const calculateTotal = () => {
     if (!equipment) return 0;
     if (rentalType === 'hours') {
-      const hours = Math.max(1, Number(rentalDuration) || 1);
-      const days = Math.ceil(hours / 24);
+      const hrs = Math.max(0, Number(rentalHours) || 0);
+      const mins = Math.max(0, Number(rentalMinutes) || 0);
+      const totalHours = hrs + mins / 60;
+      const effectiveHours = Math.max(1 / 60, totalHours); // at least 1 minute
+      const days = Math.ceil(effectiveHours / 24);
       return equipment.rentalPrice * Math.max(1, days);
     }
     let days = Number(rentalDuration) || 1;
@@ -37,15 +44,28 @@ export function BookModal({ equipment, onClose, onSuccess }) {
     setError('');
     setLoading(true);
     try {
-      const payload = {
+      // build payload
+      let payload = {
         equipmentId: equipment._id,
         startDate,
         startTime,
         rentalType,
-        rentalDuration: rentalType === 'hours' ? Number(rentalDuration) : Math.max(1, Number(rentalDuration)),
         endDate: rentalType === 'days' && endDate ? endDate : undefined,
         endTime: rentalType === 'days' && endDate ? endTime : undefined,
       };
+      if (rentalType === 'hours') {
+        const hrs = Math.max(0, Number(rentalHours) || 0);
+        const mins = Math.max(0, Number(rentalMinutes) || 0);
+        const totalHours = hrs + mins / 60;
+        if (totalHours <= 0) {
+          setError('Please specify a duration greater than 0 minutes');
+          setLoading(false);
+          return;
+        }
+        payload.rentalDuration = Number(totalHours.toFixed(3));
+      } else {
+        payload.rentalDuration = Math.max(1, Number(rentalDuration));
+      }
       await api.post('/bookings', payload);
       onSuccess?.();
       onClose();
@@ -96,13 +116,26 @@ export function BookModal({ equipment, onClose, onSuccess }) {
 
           {rentalType === 'hours' ? (
             <>
-              <label>Duration (hours)</label>
-              <input
-                type="number"
-                min="1"
-                value={rentalDuration}
-                onChange={(e) => setRentalDuration(Math.max(1, parseInt(e.target.value, 10) || 1))}
-              />
+              <label>Duration (hours & minutes)</label>
+              <div className="duration-options">
+                <input
+                  type="number"
+                  min="0"
+                  value={rentalHours}
+                  onChange={(e) => setRentalHours(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                  placeholder="Hours"
+                />
+                <span className="option-divider">hrs</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={rentalMinutes}
+                  onChange={(e) => setRentalMinutes(Math.max(0, Math.min(59, parseInt(e.target.value, 10) || 0)))}
+                  placeholder="Minutes"
+                />
+                <span className="option-divider">mins</span>
+              </div>
             </>
           ) : (
             <>

@@ -79,6 +79,25 @@ export function AdminBookings() {
     });
   };
 
+  const formatDuration = (b) => {
+    if (b.rentalType === 'hours') {
+      const totalHours = Number(b.rentalDuration) || 0;
+      const hrs = Math.floor(totalHours);
+      const mins = Math.round((totalHours - hrs) * 60);
+      const parts = [];
+      if (hrs > 0) parts.push(`${hrs} hour${hrs !== 1 ? 's' : ''}`);
+      if (mins > 0) parts.push(`${mins} min${mins !== 1 ? 's' : ''}`);
+      return parts.length ? parts.join(' ') : '0 min';
+    }
+    if (b.startDate && b.endDate) {
+      const start = new Date(b.startDate);
+      const end = new Date(b.endDate);
+      const days = Math.ceil((end - start) / (24 * 60 * 60 * 1000));
+      return `${days} day${days !== 1 ? 's' : ''}`;
+    }
+    return `${b.rentalDuration || 1} day${(b.rentalDuration || 1) !== 1 ? 's' : ''}`;
+  };
+
   const computePenalty = (b) => {
     const penaltyPerDay = b.penaltyPerDay || 0;
     if (!penaltyPerDay) return 0;
@@ -131,6 +150,7 @@ export function AdminBookings() {
                 <th>Equipment</th>
                 <th>Duration</th>
                 <th>Total</th>
+                <th>Fine</th>
                 <th>Payment</th>
                 <th>Booked On</th>
                 <th>Status</th>
@@ -147,8 +167,9 @@ export function AdminBookings() {
                     </div>
                   </td>
                   <td>{b.equipment?.name}</td>
-                  <td>{b.rentalDuration} day{b.rentalDuration !== 1 ? 's' : ''}</td>
+                  <td>{formatDuration(b)}</td>
                   <td>₹{b.totalAmount}</td>
+                  <td>{computePenalty(b) > 0 ? `₹${computePenalty(b)}` : '—'}</td>
                   <td>
                     <select
                       value={b.paymentStatus || 'Pending'}
@@ -162,7 +183,26 @@ export function AdminBookings() {
                     {computePenalty(b) > 0 && (
                       <div style={{ marginTop: 6 }}>
                         <div className="booking-penalty">Penalty: ₹{computePenalty(b)}</div>
-                        <button type="button" className="btn-pay" onClick={() => { paymentAmountRef.current = computePenalty(b); setPaymentBooking(b); }}>
+                        <button
+                          type="button"
+                          className="btn-pay"
+                          onClick={async () => {
+                            if ((b.outstandingAmount || 0) > 0) {
+                              setUpdating(b._id);
+                              try {
+                                await api.post(`/bookings/${b._id}/penalty/pay`);
+                                fetchBookings();
+                              } catch (err) {
+                                setError(err.message || 'Collect failed');
+                              } finally {
+                                setUpdating(null);
+                              }
+                            } else {
+                              paymentAmountRef.current = computePenalty(b);
+                              setPaymentBooking(b);
+                            }
+                          }}
+                        >
                           Collect Penalty
                         </button>
                       </div>

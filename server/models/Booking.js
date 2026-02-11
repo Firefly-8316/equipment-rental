@@ -37,6 +37,17 @@ const bookingSchema = new mongoose.Schema({
   returnedAt: {
     type: Date,
   },
+  penaltyAmount: {
+    type: Number,
+    default: 0,
+  },
+  outstandingAmount: {
+    type: Number,
+    default: 0,
+  },
+  penaltyPaidAt: {
+    type: Date,
+  },
   status: {
     type: String,
     enum: ['Booked', 'Rented', 'Returned'],

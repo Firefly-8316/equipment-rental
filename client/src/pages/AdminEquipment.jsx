@@ -201,21 +201,23 @@ export function AdminEquipment() {
               <tr>
                 <th>Name</th>
                 <th>Category</th>
-                <th>Price</th>
-                <th>Condition</th>
-                <th>Available</th>
-                <th>Actions</th>
+              <th>Price</th>
+              <th>Penalty/day</th>
+              <th>Condition</th>
+              <th>Available</th>
+              <th>Actions</th>
               </tr>
             </thead>
           <tbody>
             {equipment.length === 0 ? (
-              <tr><td colSpan={6}>No equipment. Add your first item.</td></tr>
+              <tr><td colSpan={7}>No equipment. Add your first item.</td></tr>
             ) : (
               equipment.map((item) => (
                 <tr key={item._id}>
                   <td>{item.name}</td>
                   <td>{item.category}</td>
                   <td>₹{item.rentalPrice}/day</td>
+                  <td>₹{item.penaltyPerDay || 0}</td>
                   <td><span className={`condition-badge ${(item.condition || 'Good').toLowerCase()}`}>{item.condition || 'Good'}</span></td>
                   <td>{item.isAvailable ? 'Yes' : 'No'}</td>
                   <td>
