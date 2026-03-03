@@ -1,66 +1,209 @@
 Equipment Rental Management System – Project Document
+
 1. PROJECT OVERVIEW
 Project Title: Equipment Rental Management System
 Tech Stack: MERN (MongoDB, Express, React, Node.js)
+
 2. PROBLEM STATEMENT
-The traditional equipment rental process is largely manual and inefficient. Customers must physically visit rental offices or make phone calls to check equipment availability. Rental records are maintained using paper registers or spreadsheets, leading to errors, data loss, and double bookings. Billing is handled manually, increasing the risk of miscalculations. Additionally, there is no real-time system to track equipment status or rental history.
+The traditional equipment rental process is largely manual and inefficient. Customers must physically visit rental offices or make phone calls to check equipment availability. Rental records are maintained using paper registers or spreadsheets, leading to errors, data loss, double bookings, and difficulty tracking late returns or penalties. Billing is handled manually, increasing the risk of miscalculations. Additionally, there is no real-time system to track equipment status, rental history, or fines for late returns.
+
 3. PROPOSED SOLUTION
-The proposed system is a web-based application that allows users to browse available equipment, check rental prices, and place rental requests online. Administrators can manage equipment inventory, approve rental requests, track equipment returns, and handle payments through a centralized dashboard. The system provides real-time availability updates and automated billing to improve accuracy, efficiency, and transparency.
+The system is a web-based application with separate dashboards for Users, Admins, and Equipment Managers. Users can browse equipment (with images), filter by category and availability, see rental prices and late-return penalties, and place bookings with precise date/time and duration (hours or days). Admins and Equipment Managers manage equipment inventory, update booking status (Booked → Rented → Returned / Cancelled), handle penalties for late returns, and track whether those penalties have been collected. The system keeps equipment availability and booking status in sync, enforces safe status transitions, and calculates penalties automatically to improve accuracy, efficiency, and transparency.
+
 4. USER ROLES & PERMISSIONS
-A. User (Customer):
-Can register and login
-Can view available equipment
-Can check rental price and availability
-Can book equipment for a selected duration
-Can make payments
-Can view rental history and booking status
-B. Admin (Rental Manager):
-Can login to a secure admin dashboard
-Can add, edit, or delete equipment details
-Can set rental price and availability
-Can view and manage rental requests
-Can update rental status (Booked → Rented → Returned)
-C. Equipment Manager (Operational Role):
-Can login to the equipment manager dashboard
-Can assign equipment for approved bookings
-Can update equipment availability status
-Can record equipment return details
-Can report damaged or unavailable equipment
-Acts as the operational handler between Admin and Users
+
+A. User (Customer)
+- Can register and login.
+- Can browse and search equipment, with category filters and availability filter.
+- Can view equipment details, including:
+  - Rental price per day.
+  - Late return penalty per day (if defined for that item).
+- Can book equipment with:
+  - Start date and time (time defaults to current system time).
+  - Rental type: hours (hours + minutes) or days.
+  - For hours: specify hours and minutes.
+  - For days: specify duration in days or an explicit end date (and optional end time).
+- Can view "My Bookings" with:
+  - Start/end date-time, duration (hours/minutes or days).
+  - Total amount, penalty per day, computed penalty due (if late).
+  - Payment status (Pending / Paid).
+  - Booking status (Booked / Rented / Returned / Cancelled).
+- Can cancel a booking while it is still in "Booked" status (equipment is returned to available).
+- Can see payment instructions and (simulated) pay total or penalty; actual payment confirmation is recorded by Admin/Equipment Manager.
+
+B. Admin (Rental Manager)
+- Can login to a secure admin dashboard.
+- Can view statistics and an "All Bookings" table.
+- Can add, edit, or delete equipment (same form as Equipment Manager).
+- Can set:
+  - Rental price per day.
+  - Late return penalty per day (fixed amount that will be used in penalty calculations).
+  - Category, descriptive fields, condition, condition notes, and availability.
+- Can view all bookings with:
+  - Customer details, equipment, duration, total, fine, payment, booked date, status.
+  - Calculated penalty (fine) and whether it is:
+    - Not collected (outstanding).
+    - Collected.
+    - Included in the total amount.
+- Can update rental status indirectly via the shared bookings API (status transitions enforced on the backend).
+- Can update booking payment status (Pending → Paid), with a 1-minute window to revert Paid back to Pending if changed accidentally.
+- Can trigger penalty collection for bookings that have an outstanding penalty amount (Collect Penalty button).
+
+C. Equipment Manager (Operational Role)
+- Can login to an equipment manager dashboard.
+- Overview tab with high-level stats.
+- Equipment tab:
+  - Same equipment CRUD form as Admin, including penalty per day, condition, and notes.
+  - Equipment list with columns for price, penalty/day, condition, and availability.
+- Bookings tab:
+  - Sees all bookings with customer, equipment, start/end times, total, fine, booked date, status.
+  - Intended workflow:
+    - Booked → Rented when equipment is handed over.
+    - Rented → Returned when equipment is returned.
+  - Can see computed penalty and whether it is Not collected, Collected, or Included in total.
+  - Can trigger penalty collection for bookings with an outstanding penalty amount.
+- Acts as the operational handler between Admin and Users, enforcing status transitions and updating equipment availability.
+
 5. DATABASE STRUCTURE (Schemas)
-A. User Schema:
-Name (String)
-Email (String, Unique)
-Password (Hashed)
-Role (String: 'user', 'admin', 'equipment_manager')
-B. Equipment Schema:
-Name (String, e.g., "Concrete Mixer")
-Description (String)
-RentalPrice (Number)
-Category (String, e.g., "Construction", "Event")
-ImageURL (String)
-IsAvailable (Boolean, Default: true)
-C. Booking Schema:
-UserID (Reference to User)
-EquipmentID (Reference to Equipment)
-RentalDuration (Number of days)
-TotalAmount (Number)
-Status (String: 'Booked', 'Rented', 'Returned')
-CreatedAt (Timestamp)
+
+A. User Schema
+- name (String)
+- email (String, unique)
+- password (Hashed)
+- role (String: 'user', 'admin', 'equipment_manager')
+- timestamps
+
+B. Equipment Schema
+- name (String, e.g., "Concrete Mixer") – required
+- description (String, optional)
+- rentalPrice (Number) – price per day, required
+- category (String, e.g., "Construction", "Event"; default "General")
+- imageURL (String, optional direct image URL)
+- isAvailable (Boolean, default true)
+- condition (String enum: 'Good', 'Damaged', 'Unavailable'; default 'Good')
+- conditionNotes (String, optional)
+- penaltyPerDay (Number, default 0) – fixed daily fine used for late-return penalty calculation
+- timestamps
+
+C. Booking Schema
+- user (ObjectId → User) – required
+- equipment (ObjectId → Equipment) – required
+- startDate (Date) – actual start date-time
+- endDate (Date) – expected end date-time (computed from duration or end date)
+- rentalType (String enum: 'hours', 'days'; default 'days')
+- rentalDuration (Number) – for:
+  - hours: decimal number of hours (e.g., 1.5 = 1 hour 30 mins)
+  - days: number of days if endDate not explicitly provided
+- totalAmount (Number) – base rental charge plus any penalty added when returned (for unpaid bookings)
+- penaltyPerDay (Number) – copied from equipment at booking time
+- returnedAt (Date) – when equipment was actually marked as returned
+- penaltyAmount (Number, default 0) – total penalty computed for late return
+- outstandingAmount (Number, default 0) – penalty still to be collected (when rental itself is already paid)
+- penaltyPaidAt (Date) – when outstanding penalty was collected
+- status (String enum: 'Booked', 'Rented', 'Returned', 'Cancelled'; default 'Booked')
+- paymentStatus (String enum: 'Pending', 'Paid'; default 'Pending')
+- paymentAt (Date) – when paymentStatus was set to Paid
+- timestamps
+
 6. FEATURE WORKFLOW (User Journey)
-Login: User logs in and accesses the equipment listing page.
-Browse: User views available equipment fetched from MongoDB.
-Book: User selects equipment, rental duration, and confirms booking.
-Database: A new booking record is created with status “Booked”.
-Admin View: Admin sees the booking request on the dashboard.
-Update: Admin or Equipment Manager updates rental status during usage and return.
-Completion: User views completed rentals in booking history.
-7. API ENDPOINTS (URL Rules)
-POST /api/auth/register → Register new user
-POST /api/auth/login → Login user
-GET /api/equipment → Get list of equipment
-POST /api/equipment → Add new equipment (Admin only)
-PUT /api/equipment/:id → Update equipment (Admin only)
-DELETE /api/equipment/:id → Delete equipment (Admin only)
-POST /api/bookings → Create new booking
-GET /api/bookings/user → View user booking history
+
+Login & Browse
+- User logs in and lands on the Equipment page.
+- Equipment is fetched from MongoDB via /api/equipment, with filters for category, search text, availability, and sorting (price/name).
+- Each equipment card shows image (with fallback), category, name, description, price, availability badge, and a Book button.
+
+Booking (User)
+- User clicks Book on an available equipment card.
+- Booking modal opens with:
+  - Start Date (default = today, cannot be past).
+  - Start Time (default = current system time).
+  - Rental Type:
+    - Hours: user specifies hours and minutes.
+    - Days: user specifies number of days or an explicit end date (and optional end time).
+  - Display of rental price per day and late-return penalty per day.
+  - Live total estimate based on duration.
+- On submit (POST /api/bookings):
+  - Backend validates equipment exists and is available.
+  - Computes:
+    - startDate (with time).
+    - endDate (from duration or explicit end date/time).
+    - totalAmount (based on days charged; for hours, days = ceil(hours / 24)).
+  - Copies penaltyPerDay from Equipment to Booking.
+  - Creates Booking with:
+    - status = 'Booked'
+    - paymentStatus = 'Pending'
+  - Marks Equipment.isAvailable = false.
+
+Status Transitions (Admin/Equipment Manager)
+- Backend enforces valid transitions:
+  - Booked → Rented only if existing.status === 'Booked'.
+  - Rented → Returned only if existing.status === 'Rented'.
+  - Returned → Booked/Rented allowed only within a 1-minute window after returnedAt (to correct mistakes).
+  - Outside this window, revert attempts are rejected.
+- On status change to 'Returned':
+  - Sets returnedAt = now.
+  - If penaltyPerDay > 0 and penaltyAmount has not been computed yet:
+    - expectedEnd = endDate if present; otherwise derived from startDate + rentalDuration (hours or days).
+    - If returnedAt > expectedEnd:
+      - lateDays = ceil((returnedAt - expectedEnd) / 24h).
+      - penaltyAmount = lateDays * penaltyPerDay.
+    - If booking.paymentStatus === 'Paid':
+      - outstandingAmount += penaltyAmount (penalty to be collected separately).
+    - Else (booking not fully paid):
+      - totalAmount += penaltyAmount (penalty included in amount still to be paid).
+
+Penalty Collection
+- A dedicated endpoint POST /api/bookings/:id/penalty/pay:
+  - Authenticated users only.
+  - Allowed for:
+    - The booking owner (user), or
+    - Admin / Equipment Manager.
+  - If outstandingAmount > 0:
+    - Sets outstandingAmount = 0.
+    - Sets penaltyPaidAt = now.
+  - Returns updated booking with populated equipment and user.
+- Admin and Equipment Manager dashboards show:
+  - Penalty amount.
+  - Status text:
+    - "Not collected" (outstandingAmount > 0).
+    - "Collected" (penaltyAmount > 0, outstandingAmount = 0, and paymentStatus = 'Paid' or penaltyPaidAt set).
+    - "Included in total" (penaltyAmount > 0, outstandingAmount = 0, payment still Pending → penalty is part of totalAmount).
+  - A "Collect Penalty" button only when outstandingAmount > 0.
+
+Payment Status and Revert Window
+- Admin can update paymentStatus via PATCH /api/bookings/:id with paymentStatus:
+  - Pending → Paid marks the booking as paid and records paymentAt = now.
+  - Paid → Pending is allowed only within 1 minute of paymentAt (protects against accidental marking Paid).
+- Users see paymentStatus on "My Bookings" with badges.
+
+Cancellation (User)
+- Users can cancel their own bookings while status is 'Booked' via POST /api/bookings/:id/cancel:
+  - Only the booking owner can cancel.
+  - If successful:
+    - status becomes 'Cancelled'.
+    - Equipment.isAvailable is set back to true.
+
+7. API ENDPOINTS (URL RULES – CORE)
+
+Auth
+- POST /api/auth/register → Register new user.
+- POST /api/auth/login → Login user (returns JWT).
+
+Equipment
+- GET /api/equipment → Get list of equipment (optional query: ?available=true).
+- POST /api/equipment → Add new equipment (Equipment Manager/Admin only).
+- PUT /api/equipment/:id → Update equipment (Equipment Manager/Admin only).
+- DELETE /api/equipment/:id → Delete equipment (Equipment Manager/Admin only).
+
+Bookings
+- POST /api/bookings → Create new booking (User).
+- GET /api/bookings/user → View bookings for the authenticated user (User).
+- GET /api/bookings → View all bookings (Equipment Manager/Admin).
+- PATCH /api/bookings/:id → Update booking status or paymentStatus (Equipment Manager/Admin; with enforced transitions and 1-minute revert windows).
+- POST /api/bookings/:id/penalty/pay → Collect outstanding penalty (Booking owner or Equipment Manager/Admin).
+- POST /api/bookings/:id/cancel → Cancel a booking while status is 'Booked' (Booking owner).
+
+Admin / Equipment Manager Dashboards
+- GET /api/admin/... and /api/equipment-manager/... → Summary stats and overviews (implementation-specific; current project uses these endpoints mainly for dashboard counts and lists).
+
+This document reflects the current implemented behavior of the Equipment Rental Management System, including roles, booking logic with time-based rentals, penalties, cancellation, and admin/equipment manager workflows.

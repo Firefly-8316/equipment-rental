@@ -1,0 +1,75 @@
+Equipment Rental Management System – Database Schemas
+=====================================================
+
+This document summarizes all MongoDB/Mongoose schemas used in the project.
+Each table-style section lists the **Field Name**, **Data Type**, **Constraints**, **Required**, and a short **Description**.
+
+----------------------------------------------------------------------
+1. User Schema (`User`)
+----------------------------------------------------------------------
+
+Collection: `users`
+
+| Field Name | Data Type | Constraints | Required | Description |
+|-----------|----------|-------------|----------|-------------|
+| _id | ObjectId | Primary key (auto-generated) | Yes (by MongoDB) | Unique identifier for the user. |
+| name | String | Max length handled by UI/validation | Yes | Full name of the user. |
+| email | String | Unique, should be valid email format | Yes | Login identifier and contact email. |
+| password | String | Hashed (bcrypt), not exposed in API responses | Yes | Encrypted password hash. |
+| role | String | Default `'user'`; expected values: `'user'`, `'admin'`, `'equipment_manager'` | No (default applied) | Defines access level and dashboard (user, admin, equipment manager). |
+| createdAt | Date | Auto-set by Mongoose `timestamps` | Yes (by schema) | Record creation timestamp. |
+| updatedAt | Date | Auto-set by Mongoose `timestamps` | Yes (by schema) | Last update timestamp. |
+
+----------------------------------------------------------------------
+2. Equipment Schema (`Equipment`)
+----------------------------------------------------------------------
+
+Collection: `equipment`
+
+| Field Name | Data Type | Constraints | Required | Description |
+|-----------|----------|-------------|----------|-------------|
+| _id | ObjectId | Primary key (auto-generated) | Yes (by MongoDB) | Unique identifier for the equipment item. |
+| name | String | Non-empty string | Yes | Display name of the equipment (e.g., "Angle Grinder"). |
+| description | String | Default `''` | No | Optional description, usage notes, etc. |
+| rentalPrice | Number | Must be ≥ 0 (validated in UI/backend) | Yes | Daily rental price in currency units (₹ per day). |
+| category | String | Default `'General'` | No | Logical category (e.g., "Construction", "Event", "Heavy"). |
+| imageURL | String | Default `''`; should be a direct image URL if provided | No | URL used to display an image of the equipment. |
+| isAvailable | Boolean | Default `true` | No | Indicates if the item is currently available to be booked. |
+| condition | String | Enum: `'Good'`, `'Damaged'`, `'Unavailable'`; default `'Good'` | No | Current condition/maintenance state. |
+| conditionNotes | String | Default `''` | No | Free-form notes about damage, maintenance, or restrictions. |
+| penaltyPerDay | Number | Default `0`; must be ≥ 0 | No | Fixed late-return fine amount charged per overdue day. |
+| createdAt | Date | Auto-set by Mongoose `timestamps` | Yes (by schema) | Record creation timestamp. |
+| updatedAt | Date | Auto-set by Mongoose `timestamps` | Yes (by schema) | Last update timestamp. |
+
+----------------------------------------------------------------------
+3. Booking Schema (`Booking`)
+----------------------------------------------------------------------
+
+Collection: `bookings`
+
+| Field Name | Data Type | Constraints | Required | Description |
+|-----------|----------|-------------|----------|-------------|
+| _id | ObjectId | Primary key (auto-generated) | Yes (by MongoDB) | Unique identifier for the booking. |
+| user | ObjectId (ref: `User`) | Must reference an existing `User` document | Yes | The customer who created the booking. |
+| equipment | ObjectId (ref: `Equipment`) | Must reference an existing `Equipment` document | Yes | The equipment item being rented. |
+| startDate | Date | Should be ≥ current date/time at booking | No (but set by backend when booking) | Actual rental start date-time (combined from date + time on booking form). |
+| endDate | Date | Computed by backend from duration or explicit end date | No (but set by backend for all bookings) | Expected rental end date-time. |
+| rentalType | String | Enum: `'hours'`, `'days'`; default `'days'` | No (default applied) | Indicates whether the booking is based on hours (with minutes) or whole days. |
+| rentalDuration | Number | Must be > 0; interpreted as: hours for `rentalType='hours'`, days otherwise | Yes | Length of the rental: decimal hours or days depending on `rentalType`. |
+| totalAmount | Number | Must be ≥ 0 | Yes | Total rental charge, including any penalty added for unpaid bookings. |
+| penaltyPerDay | Number | Default `0` | No | Daily penalty amount, copied from the equipment at the time of booking. |
+| returnedAt | Date | Set when status becomes `'Returned'` | No | Actual timestamp when the equipment is marked returned. |
+| penaltyAmount | Number | Default `0`; computed server-side when returned late | No | Total late-return penalty computed for the booking. |
+| outstandingAmount | Number | Default `0` | No | Portion of `penaltyAmount` that is still unpaid (when base rental is already paid). |
+| penaltyPaidAt | Date | Set when outstanding penalty is collected | No | Timestamp when penalty was fully collected. |
+| status | String | Enum: `'Booked'`, `'Rented'`, `'Returned'`, `'Cancelled'`; default `'Booked'` | No (default applied) | Current lifecycle status of the booking. |
+| paymentStatus | String | Enum: `'Pending'`, `'Paid'`; default `'Pending'` | No (default applied) | Indicates whether the rental amount (and included penalties) has been paid. |
+| paymentAt | Date | Set when `paymentStatus` is changed to `'Paid'` | No | Timestamp of rental payment confirmation. |
+| createdAt | Date | Auto-set by Mongoose `timestamps` | Yes (by schema) | Booking creation timestamp. |
+| updatedAt | Date | Auto-set by Mongoose `timestamps` | Yes (by schema) | Last update timestamp for any field changes. |
+
+Notes:
+- All schemas use Mongoose `timestamps`, which automatically manage `createdAt` and `updatedAt`.
+- Reference fields (`user`, `equipment`) are stored as MongoDB `ObjectId` values and are populated in API responses where needed.
+- Business rules, such as status transition constraints and penalty calculations, are implemented in the booking routes and not directly enforced by schema-level validations.
+

@@ -1,0 +1,250 @@
+Equipment Rental Management System – Data Flow Diagrams (DFD)
+============================================================
+
+This file contains Mermaid diagrams for the main DFD levels of the project.
+You can paste each ```mermaid block into a Mermaid-compatible viewer or documentation tool.
+
+------------------------------------------------------------
+DFD – Level 0 (Context Diagram)
+------------------------------------------------------------
+
+```mermaid
+flowchart LR
+    %% External entities
+    U[User\n(Customer)]
+    A[Admin\n(Rental Manager)]
+    EM[Equipment Manager]
+
+    %% System boundary
+    subgraph S[Equipment Rental Management System]
+      P[Equipment Rental\nManagement System]
+    end
+
+    %% Data flows
+    U -->|Register/Login,\nView Equipment,\nBook Equipment,\nView Bookings,\nCancel Booking| P
+    P -->|Auth Responses,\nEquipment List,\nBooking Status,\nPayment Instructions| U
+
+    A -->|Manage Equipment,\nView All Bookings,\nUpdate Status & Payment,\nManage Users| P
+    P -->|Equipment & Booking Data,\nReports & Dashboards| A
+
+    EM -->|Manage Equipment,\nAssign Equipment,\nUpdate Status,\nCollect Penalties| P
+    P -->|Equipment & Booking Data,\nPenalty Details| EM
+```
+
+------------------------------------------------------------
+DFD – Level 1 (Top-Level Processes)
+------------------------------------------------------------
+
+```mermaid
+flowchart LR
+    %% External entities
+    U[User]
+    A[Admin]
+    EM[Equipment Manager]
+
+    %% Data stores
+    DSU[(D1: Users)]
+    DSE[(D2: Equipment)]
+    DSB[(D3: Bookings\n& Penalties)]
+
+    %% Processes
+    P1[1.0 Authentication\n& User Management]
+    P2[2.0 Equipment\nManagement]
+    P3[3.0 Booking &\nRental Management]
+    P4[4.0 Payment &\nPenalty Management]
+    P5[5.0 Reporting &\nDashboards]
+
+    %% Flows between entities and processes
+    U -->|Register/Login\nCredentials| P1
+    P1 -->|Auth Result,\nJWT Token,\nUser Profile| U
+
+    A -->|Create/Update/\nDelete Users| P1
+    P1 -->|User Records| A
+
+    A -->|Add/Edit/Delete\nEquipment,\nSet Penalty/Day| P2
+    EM -->|Add/Edit Equipment,\nUpdate Condition\n& Availability| P2
+    P2 -->|Equipment List,\nDetails| U
+
+    U -->|Booking Requests\n(start date/time,\n rental type & duration)| P3
+    EM -->|Assign Equipment,\nUpdate Status\n(Booked→Rented→Returned)| P3
+    A -->|Override/Monitor\nStatus| P3
+
+    U -->|Payment Intent\n(offline/recorded)| P4
+    A -->|Mark Booking Paid| P4
+    EM -->|Collect Penalty| P4
+    P4 -->|Payment Status,\nOutstanding Penalty| U
+
+    A -->|View System Stats,\nRevenue,\nPenalties| P5
+    EM -->|View Operational\nStats| P5
+
+    %% Flows to data stores
+    P1 -->|Create/Update\nUser| DSU
+    DSU -->|User Data| P1
+
+    P2 -->|Create/Update\nEquipment| DSE
+    DSE -->|Equipment Data| P2
+    DSE -->|Equipment Data| P3
+
+    P3 -->|Create/Update\nBookings,\nStatus,\nDates| DSB
+    DSB -->|Booking Data| P3
+
+    P4 -->|Update Payment\nStatus,\nPenalty Fields| DSB
+    DSB -->|Payment &\nPenalty Data| P4
+
+    P5 -->|Read Aggregated\nData| DSU
+    P5 -->|Read Aggregated\nData| DSE
+    P5 -->|Read Aggregated\nData| DSB
+    DSU -->|Users| P5
+    DSE -->|Equipment| P5
+    DSB -->|Bookings &\nPenalties| P5
+```
+
+------------------------------------------------------------
+DFD – Level 1.1 (User Module)
+------------------------------------------------------------
+
+```mermaid
+flowchart LR
+    %% External entity
+    U[User]
+
+    %% Data stores
+    DSU[(D1: Users)]
+    DSE[(D2: Equipment)]
+    DSB[(D3: Bookings\n& Penalties)]
+
+    %% Processes under User role
+    P1_1[1.1.1 Register\nUser]
+    P1_2[1.1.2 Login\nUser]
+    P1_3[1.1.3 Browse &\nSearch Equipment]
+    P1_4[1.1.4 Create\nBooking]
+    P1_5[1.1.5 View &\nManage Bookings]
+    P1_6[1.1.6 Pay\nRental / Penalty\n(Recorded)]
+
+    %% Flows
+    U -->|Registration Data| P1_1
+    P1_1 -->|New User| DSU
+    DSU -->|User Exists?|\nP1_1
+    P1_1 -->|Registration Result| U
+
+    U -->|Login Credentials| P1_2
+    DSU -->|User Record| P1_2
+    P1_2 -->|Auth Result,\nToken| U
+
+    U -->|Search Text,\nFilters| P1_3
+    DSE -->|Available\nEquipment| P1_3
+    P1_3 -->|Equipment List| U
+
+    U -->|Chosen Equipment,\nStart Date/Time,\nRental Type & Duration| P1_4
+    DSE -->|Equipment Data| P1_4
+    P1_4 -->|New Booking\n(Booked)| DSB
+    P1_4 -->|Booking Result| U
+
+    U -->|View My\nBookings| P1_5
+    DSB -->|User Bookings| P1_5
+    P1_5 -->|Booking List\nwith Status,\nPenalty Info| U
+
+    U -->|Cancel Request\n(while Booked)| P1_5
+    DSB -->|Booking Record| P1_5
+    P1_5 -->|Update Status\n→ Cancelled| DSB
+    P1_5 -->|Cancel Result| U
+
+    U -->|Payment Intent\nfor Rental/Penalty| P1_6
+    DSB -->|Booking &\nPenalty Data| P1_6
+    P1_6 -->|Payment Recorded\n(via Admin/EM),\nInstructions| U
+```
+
+------------------------------------------------------------
+DFD – Level 1.2 (Admin Module)
+------------------------------------------------------------
+
+```mermaid
+flowchart LR
+    %% External entity
+    A[Admin]
+
+    %% Data stores
+    DSU[(D1: Users)]
+    DSE[(D2: Equipment)]
+    DSB[(D3: Bookings\n& Penalties)]
+
+    %% Processes under Admin role
+    P2_1[1.2.1 Admin\nAuthentication]
+    P2_2[1.2.2 Manage\nEquipment]
+    P2_3[1.2.3 Manage\nBookings & Status]
+    P2_4[1.2.4 Manage\nPayments & Penalties]
+    P2_5[1.2.5 View\nReports & Users]
+
+    %% Flows
+    A -->|Login Credentials| P2_1
+    DSU -->|Admin Record| P2_1
+    P2_1 -->|Auth Result| A
+
+    A -->|Add/Edit/Delete\nEquipment,\nSet Rental & Penalty/Day| P2_2
+    P2_2 -->|Create/Update\nEquipment| DSE
+    DSE -->|Equipment List| P2_2
+    P2_2 -->|Operation Result| A
+
+    A -->|View All\nBookings,\nChange Status| P2_3
+    DSB -->|All Bookings| P2_3
+    P2_3 -->|Status Updates\n(Booked↔Rented↔Returned↔Cancelled)| DSB
+    P2_3 -->|Updated Bookings| A
+
+    A -->|Set Payment\nStatus (Pending↔Paid)| P2_4
+    DSB -->|Booking &\nPenalty Data| P2_4
+    P2_4 -->|Update Payment\nFields & Possibly\nOutstanding Penalty| DSB
+    P2_4 -->|Payment / Penalty\nSummary| A
+
+    A -->|View Stats,\nUsers, Revenue,\nPenalties| P2_5
+    DSU -->|User Data| P2_5
+    DSE -->|Equipment Data| P2_5
+    DSB -->|Booking &\nPenalty Data| P2_5
+    P2_5 -->|Dashboard &\nReports| A
+```
+
+------------------------------------------------------------
+DFD – Level 1.3 (Equipment Manager Module)
+------------------------------------------------------------
+
+```mermaid
+flowchart LR
+    %% External entity
+    EM[Equipment Manager]
+
+    %% Data stores
+    DSE[(D2: Equipment)]
+    DSB[(D3: Bookings\n& Penalties)]
+
+    %% Processes under Equipment Manager role
+    P3_1[1.3.1 EM\nAuthentication]
+    P3_2[1.3.2 Operational\nEquipment Management]
+    P3_3[1.3.3 Assign &\nUpdate Booking Status]
+    P3_4[1.3.4 Collect\nPenalties]
+    P3_5[1.3.5 View\nOperational Stats]
+
+    %% Flows
+    EM -->|Login Credentials| P3_1
+    %% Auth uses same Users store as admin/user
+    P3_1 -->|Auth Result| EM
+
+    EM -->|Update Condition,\nAvailability,\nPenalty/Day| P3_2
+    DSE -->|Equipment Data| P3_2
+    P3_2 -->|Update Equipment| DSE
+    P3_2 -->|Result| EM
+
+    EM -->|View Bookings,\nSet Status\n(Booked→Rented→Returned)| P3_3
+    DSB -->|Bookings to Fulfil| P3_3
+    P3_3 -->|Status Updates &\nreturnedAt| DSB
+    P3_3 -->|Updated Booking\nInfo| EM
+
+    EM -->|Collect Penalty| P3_4
+    DSB -->|Outstanding\nPenalties| P3_4
+    P3_4 -->|Update\noutstandingAmount,\npenaltyPaidAt| DSB
+    P3_4 -->|Collection\nConfirmation| EM
+
+    EM -->|View Equipment &\nBooking Stats| P3_5
+    DSE -->|Equipment Data| P3_5
+    DSB -->|Booking &\nPenalty Data| P3_5
+    P3_5 -->|Operational\nDashboard| EM
+```
+
