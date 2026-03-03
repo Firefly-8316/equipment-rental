@@ -130,7 +130,15 @@ export function Equipment() {
             >
               <div className="equipment-image">
                 {item.imageURL ? (
-                  <img src={item.imageURL} alt={item.name} />
+                  <img
+                    src={item.imageURL}
+                    alt={item.name}
+                    onError={(e) => {
+                      // Fallback if external image fails or is blocked
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = 'https://via.placeholder.com/600x400?text=No+Image';
+                    }}
+                  />
                 ) : (
                   <div className="equipment-placeholder">No image</div>
                 )}

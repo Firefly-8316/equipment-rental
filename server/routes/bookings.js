@@ -108,6 +108,33 @@ router.post('/:id/penalty/pay', protect, async (req, res) => {
   }
 });
 
+// User cancel their own booking (only when still Booked)
+router.post('/:id/cancel', protect, async (req, res) => {
+  try {
+    console.log('Cancel booking request:', req.params.id, 'by user:', req.user ? req.user._id : 'unknown');
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+    // Only owner can cancel
+    if (String(booking.user) !== String(req.user._id)) {
+      return res.status(403).json({ message: 'Not authorized to cancel this booking' });
+    }
+
+    if (booking.status !== 'Booked') {
+      return res.status(400).json({ message: 'Only bookings in Booked status can be cancelled' });
+    }
+
+    booking.status = 'Cancelled';
+    // mark equipment available again
+    await Equipment.findByIdAndUpdate(booking.equipment, { isAvailable: true });
+    await booking.save();
+    const populated = await Booking.findById(booking._id).populate('equipment').populate('user', 'name email');
+    res.json(populated);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.get('/user', protect, async (req, res) => {
   try {
     const { status } = req.query;
@@ -165,6 +192,10 @@ router.patch('/:id', protect, equipmentManager, async (req, res) => {
         // clear returnedAt when reverting
         update.returnedAt = undefined;
       } else if (status === 'Returned') {
+        // only allow marking Returned if it was previously Rented
+        if (existing.status !== 'Rented') {
+          return res.status(400).json({ message: 'Can only mark a booking as Returned after it is Rented' });
+        }
         update.status = 'Returned';
         update.returnedAt = new Date();
         // compute penalty if not already computed
@@ -202,6 +233,12 @@ router.patch('/:id', protect, equipmentManager, async (req, res) => {
             }
           }
         }
+      } else if (status === 'Rented') {
+        // only allow marking Rented if it was previously Booked
+        if (existing.status !== 'Booked') {
+          return res.status(400).json({ message: 'Can only mark a booking as Rented from Booked status' });
+        }
+        update.status = 'Rented';
       } else {
         update.status = status;
       }

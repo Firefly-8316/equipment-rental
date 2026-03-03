@@ -6,7 +6,12 @@ export function BookModal({ equipment, onClose, onSuccess }) {
   const today = new Date().toISOString().split('T')[0];
   const [rentalType, setRentalType] = useState('days');
   const [startDate, setStartDate] = useState(today);
-  const [startTime, setStartTime] = useState('09:00');
+  const [startTime, setStartTime] = useState(() => {
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+  });
   // days-mode duration
   const [rentalDuration, setRentalDuration] = useState(1);
   const [endDate, setEndDate] = useState('');

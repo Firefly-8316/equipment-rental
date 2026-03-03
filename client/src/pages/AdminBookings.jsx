@@ -4,7 +4,7 @@ import './AdminBookings.css';
 import { PaymentModal } from '../components/PaymentModal';
 import { useRef } from 'react';
 
-const STATUS_OPTIONS = ['Booked', 'Rented', 'Returned'];
+const STATUS_OPTIONS = ['Booked', 'Rented', 'Returned', 'Cancelled'];
 
 export function AdminBookings() {
   const [bookings, setBookings] = useState([]);
@@ -99,6 +99,10 @@ export function AdminBookings() {
   };
 
   const computePenalty = (b) => {
+    // Prefer server-recorded penaltyAmount when available
+    if (typeof b.penaltyAmount === 'number' && b.penaltyAmount > 0) {
+      return b.penaltyAmount;
+    }
     const penaltyPerDay = b.penaltyPerDay || 0;
     if (!penaltyPerDay) return 0;
     const start = b.startDate ? new Date(b.startDate) : null;
@@ -180,33 +184,47 @@ export function AdminBookings() {
                       <option value="Pending">Pending</option>
                       <option value="Paid">Paid</option>
                     </select>
-                    {computePenalty(b) > 0 && (
-                      <div style={{ marginTop: 6 }}>
-                        <div className="booking-penalty">Penalty: ₹{computePenalty(b)}</div>
-                        <button
-                          type="button"
-                          className="btn-pay"
-                          onClick={async () => {
-                            if ((b.outstandingAmount || 0) > 0) {
-                              setUpdating(b._id);
-                              try {
-                                await api.post(`/bookings/${b._id}/penalty/pay`);
-                                fetchBookings();
-                              } catch (err) {
-                                setError(err.message || 'Collect failed');
-                              } finally {
-                                setUpdating(null);
-                              }
-                            } else {
-                              paymentAmountRef.current = computePenalty(b);
-                              setPaymentBooking(b);
-                            }
-                          }}
-                        >
-                          Collect Penalty
-                        </button>
-                      </div>
-                    )}
+                    {(() => {
+                      const penalty = computePenalty(b);
+                      if (penalty <= 0) return null;
+                      const outstanding = b.outstandingAmount || 0;
+                      const collected =
+                        penalty > 0 &&
+                        outstanding === 0 &&
+                        (b.paymentStatus === 'Paid' || b.penaltyPaidAt);
+                      const statusText = outstanding > 0
+                        ? 'Not collected'
+                        : collected
+                        ? 'Collected'
+                        : 'Included in total';
+                      return (
+                        <div style={{ marginTop: 6 }}>
+                          <div className="booking-penalty">
+                            Penalty: ₹{penalty}{' '}
+                            <span style={{ fontSize: '0.8rem', opacity: 0.85 }}>({statusText})</span>
+                          </div>
+                          {outstanding > 0 && (
+                            <button
+                              type="button"
+                              className="btn-pay"
+                              onClick={async () => {
+                                setUpdating(b._id);
+                                try {
+                                  await api.post(`/bookings/${b._id}/penalty/pay`);
+                                  fetchBookings();
+                                } catch (err) {
+                                  setError(err.message || 'Collect failed');
+                                } finally {
+                                  setUpdating(null);
+                                }
+                              }}
+                            >
+                              Collect Penalty
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td>{formatDate(b.createdAt)}</td>
                   <td>

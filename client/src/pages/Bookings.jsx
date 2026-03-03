@@ -199,6 +199,25 @@ export function Bookings() {
                     return null;
                   })()}
                 </p>
+                {b.status === 'Booked' && (
+                  <div style={{ marginTop: 8 }}>
+                    <button
+                      type="button"
+                      className="btn-cancel"
+                      onClick={async () => {
+                        if (!confirm('Cancel this booking?')) return;
+                        try {
+                          await api.post(`/bookings/${b._id}/cancel`);
+                          fetchBookings();
+                        } catch (err) {
+                          setError(err.message || 'Cancel failed');
+                        }
+                      }}
+                    >
+                      Cancel Booking
+                    </button>
+                  </div>
+                )}
                 <p><strong>Booked on:</strong> {formatDate(b.createdAt)}</p>
               </div>
             </div>

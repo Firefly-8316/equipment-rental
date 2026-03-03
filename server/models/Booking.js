@@ -50,7 +50,7 @@ const bookingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Booked', 'Rented', 'Returned'],
+    enum: ['Booked', 'Rented', 'Returned', 'Cancelled'],
     default: 'Booked',
   },
   paymentStatus: {

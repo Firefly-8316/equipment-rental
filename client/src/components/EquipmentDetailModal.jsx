@@ -16,7 +16,14 @@ export function EquipmentDetailModal({ equipment, onClose, onBook }) {
         <div className="equipment-detail-body">
           <div className="equipment-detail-image">
             {equipment.imageURL ? (
-              <img src={equipment.imageURL} alt={equipment.name} />
+              <img
+                src={equipment.imageURL}
+                alt={equipment.name}
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = 'https://via.placeholder.com/800x400?text=No+Image';
+                }}
+              />
             ) : (
               <div className="equipment-placeholder">No image</div>
             )}

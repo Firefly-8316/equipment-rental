@@ -1,8 +1,22 @@
+.em-equipment {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 220px);
+  overflow: hidden;
+}
+
 .em-equipment-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+.em-equipment .admin-table-wrap {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .em-equipment-header h2 {
@@ -42,6 +56,8 @@
   padding: 1.5rem;
   width: 100%;
   max-width: 440px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
 }
 
 .em-form h3 {
