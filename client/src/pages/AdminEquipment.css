@@ -29,10 +29,12 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   z-index: 100;
-  padding: 1rem;
+  padding: 1.25rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .admin-form {
@@ -42,6 +44,11 @@
   padding: 1.5rem;
   width: 100%;
   max-width: 480px;
+  max-height: min(calc(100vh - 2.5rem), 90vh);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .admin-form h3 {
